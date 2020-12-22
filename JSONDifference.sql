@@ -6,7 +6,7 @@
 /**
 Summary: >
   Adapted from https://www.red-gate.com/simple-talk/blogs/sql-server-json-diff-checking-for-differences-between-json-documents/ 
-  to cope with differnt ordering in arrays e.g. where items are added/deleted from an alphabetic list.
+  to cope with different ordering in arrays e.g. where items are added/deleted from an alphabetic list.
 
   This function 'diffs' a source JSON document with a target JSON document and produces an
   analysis of which properties are missing in either the source or target, or the values
