@@ -300,6 +300,7 @@ BEGIN
 						WHERE 
 							MapID=(SELECT MIN(MapID) FROM @map WHERE MatchPath Is Null 
 								AND Iteration=@Depth And SourceOrTarget='t' 
+								AND PairKey = (SELECT PairKey FROM @map WHERE MapID=@MapID)
 								AND PairValue=(SELECT PairValue FROM @map WHERE MapID=@MapID) 
 								AND ParentPath=(SELECT ParentPath FROM @map WHERE MapID=@MapID))
 						IF (@@ROWCOUNT=1)
