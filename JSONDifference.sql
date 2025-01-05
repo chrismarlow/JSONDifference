@@ -281,6 +281,7 @@ BEGIN
 				CLOSE MapGroupSource;  
 				DEALLOCATE MapGroupSource;
 
+				
 				--Now try to match strings not matched by containing object
 				DECLARE MapCursor CURSOR FOR
 				SELECT MapID FROM @map m WHERE m.SourceOrTarget='s' AND m.Iteration=@Depth AND m.MatchMap Is Null ORDER BY MapID
@@ -296,16 +297,17 @@ BEGIN
 						--
 						--PICK and update the first matching ID where PathValue is the same and SourceOrTarget=t, mark up successful match
 						UPDATE @map
-						SET MatchPath=(SELECT PairPath FROM @map WHERE MapID=@MapID), MatchMethod = 'Pair Match'
+						SET MatchPath=(SELECT PairPath FROM @map WHERE MapID=@MapID), MatchMap=@MapID, MatchMethod = 'Pair Match'
 						WHERE 
 							MapID=(SELECT MIN(MapID) FROM @map WHERE MatchPath Is Null 
 								AND Iteration=@Depth And SourceOrTarget='t' 
+								AND PairKey = (SELECT PairKey FROM @map WHERE MapID=@MapID) 
 								AND PairValue=(SELECT PairValue FROM @map WHERE MapID=@MapID) 
 								AND ParentPath=(SELECT ParentPath FROM @map WHERE MapID=@MapID))
 						IF (@@ROWCOUNT=1)
 						BEGIN
 							UPDATE @map
-							SET MatchPath=(SELECT PairPath FROM @map WHERE MatchPath=(SELECT PairPath FROM @map WHERE MapID=@MapID) AND Iteration=@Depth AND SourceOrTarget='t'), MatchMethod = 'Pair Match'
+							SET MatchPath=(SELECT PairPath FROM @map WHERE MatchPath=(SELECT PairPath FROM @map WHERE MapID=@MapID) AND Iteration=@Depth AND SourceOrTarget='t'), MatchMap=@MapID, MatchMethod = 'Pair Match'
 							WHERE MapID=@MapID
 						END
 						--SELECT * FROM @objects WHERE ObjectID=@ObjectID
@@ -315,6 +317,43 @@ BEGIN
 				CLOSE MapCursor;  
 				DEALLOCATE MapCursor; 
  
+				
+				
+				--Now try to match strings not matched by containing object
+				
+				DECLARE MapCursor2 CURSOR FOR
+				SELECT MapID FROM @map m WHERE m.SourceOrTarget='s' AND m.Iteration=@Depth AND m.MatchMap Is Null ORDER BY MapID
+
+				OPEN MapCursor2;  
+  
+					-- Perform the first fetch.  
+					FETCH NEXT FROM MapCursor2 INTO @MapID;  
+  
+					-- Check @@FETCH_STATUS to see if there are any more rows to fetch.  
+					WHILE @@FETCH_STATUS = 0  
+						BEGIN  
+						--
+						--PICK and update the first matching ID where PathValue is the same and SourceOrTarget=t, mark up successful match
+						UPDATE @map
+						SET MatchPath=(SELECT PairPath FROM @map WHERE MapID=@MapID), MatchMap=@MapID, MatchMethod = 'Unordered Pair Match'
+						WHERE 
+							MapID=(SELECT MIN(MapID) FROM @map WHERE MatchPath Is Null 
+								AND Iteration=@Depth And SourceOrTarget='t' 
+								AND PairValue=(SELECT PairValue FROM @map WHERE MapID=@MapID) 
+								AND ParentPath=(SELECT ParentPath FROM @map WHERE MapID=@MapID))
+						IF (@@ROWCOUNT=1)
+						BEGIN
+							UPDATE @map
+							SET MatchPath=(SELECT PairPath FROM @map WHERE MatchPath=(SELECT PairPath FROM @map WHERE MapID=@MapID) AND Iteration=@Depth AND SourceOrTarget='t'), MatchMethod = 'Unordered Pair Match'
+							WHERE MapID=@MapID
+						END
+						--SELECT * FROM @objects WHERE ObjectID=@ObjectID
+						FETCH NEXT FROM MapCursor2 INTO @MapID;
+					END  
+  
+				CLOSE MapCursor2;  
+				DEALLOCATE MapCursor2;
+				
          END
 	
 	--Full outer join on the unmatched items

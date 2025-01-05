@@ -19,7 +19,7 @@ SET @TargetJSON = '{
 "list": [{"a":"1"}, {"b":"2"}],
 "list": [{"b":"2"},{"a":"1"}]
 }'
-*/
+
 
 SET @SourceJSON = '{
 "list": ["a", "b", "c", {"listx": ["d", "e"], "listy": ["f"]}]
@@ -28,7 +28,7 @@ SET @SourceJSON = '{
 SET @TargetJSON = '{
 "list": ["a", "b", {"listx": ["d", "e"], "listy": ["f"]}, "c"]
 }'
-/*
+
 SET @SourceJSON = '{
  
   "question": "What is a clustered index?",
@@ -51,6 +51,19 @@ SET @TargetJSON = '{
   ],
   "answer": 4
 }'
+
 */
+SET @SourceJSON = '{
+    "ID": 9257,
+    "BirthTown": "Praha 55",
+    "City": "Praha"
+}'
+
+SET @TargetJSON = '{
+    "ID": 9257,
+    "BirthTown": "Praha",
+    "City": "Praha"
+}'
+
 SELECT * FROM dbo.Compare_JsonObject(@SourceJSON, @TargetJSON);
 SELECT * FROM dbo.JSONDifference(@SourceJSON, @TargetJSON);
